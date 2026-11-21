@@ -11,7 +11,7 @@
       "id": "user",
       "type": "external",
       "label": "Técnico Agrícola",
-      "sublabel": "Navegador Web / Campo",
+      "sublabel": "Web / Windows / Campo",
       "pos": [40, 220],
       "size": [130, 60]
     },
@@ -112,7 +112,7 @@
       "sublabel": "Dockerfile CPU",
       "pos": [410, 480],
       "size": [140, 60],
-      "tag": "Previsto (M4)"
+      "tag": "Implementado local (M4)"
     },
     {
       "id": "docker_net",
@@ -121,7 +121,7 @@
       "sublabel": "docker-compose.yml",
       "pos": [600, 480],
       "size": [140, 60],
-      "tag": "Previsto (M4)"
+      "tag": "Implementado local (M4)"
     },
     {
       "id": "wheel_dist",
@@ -130,7 +130,7 @@
       "sublabel": "dist/*.whl (uv build)",
       "pos": [230, 480],
       "size": [140, 60],
-      "tag": "Previsto (M4)"
+      "tag": "Implementado local (M4)"
     }
   ],
   "boundaries": [
@@ -152,7 +152,7 @@
     },
     {
       "kind": "security-group",
-      "label": "Componentes Previstos para Despliegue (M4 — Diferidos)",
+      "label": "Componentes de Despliegue (M4 — Implementación local)",
       "wraps": [
         "wheel_dist",
         "docker_pkg",
@@ -266,7 +266,7 @@
     },
     {
       "dot": "cyan",
-      "title": "Servicio Web y UI (Implementado M3)",
+      "title": "Servicio API e Interfaces (Implementado M3)",
       "items": [
         "FastAPI: Endpoints asíncronos /health, /predict y /docs OpenAPI",
         "Tkinter: Interfaz de escritorio interactiva con visualización Top-3",
@@ -275,11 +275,11 @@
     },
     {
       "dot": "amber",
-      "title": "Infraestructura Prevista (Diferida a M4)",
+      "title": "Infraestructura de Despliegue (M4 — Implementación local)",
       "items": [
         "Empaquetado Wheel distribuible vía uv build",
         "Contenerización Docker CPU multi-etapa",
-        "Orquestación Docker Compose para API y UI en red compartida"
+        "Orquestación Docker Compose para el servicio de API; interfaces Tkinter/web en el host"
       ]
     }
   ]

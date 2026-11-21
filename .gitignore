@@ -11,9 +11,9 @@ htmlcov/
 .ruff_cache/
 .mypy_cache/
 
-# Artefactos de empaquetado (HU-08)
-dist/
+# Artefactos de empaquetado locales
 build/
+dist/
 *.egg-info/
 
 # Caché local de Hugging Face
