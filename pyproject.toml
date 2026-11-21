@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=77.0.0", "wheel"]
+requires = ["setuptools>=77.0.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -12,6 +12,8 @@ license = "MIT"
 dependencies = [
     "fastapi>=0.115.0",
     "httpx>=0.27.0",
+    "mlflow>=3.18.0",
+    "pandas>=2.2.0",
     "pillow>=11.0.0",
     "pydantic>=2.9.0",
     "python-multipart>=0.0.12",
@@ -31,7 +33,18 @@ dev = [
 ]
 
 [tool.setuptools]
-packages = ["src", "api"]
+packages = [
+    "src",
+    "api",
+    "ui",
+    "ui.web",
+    "ui.web.static",
+]
+
+[tool.setuptools.package-data]
+"ui.web" = [
+    "static/*",
+]
 
 [tool.pytest.ini_options]
 minversion = "8.0"

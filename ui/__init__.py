@@ -1,1 +1,1 @@
-"""Paquete de interfaces de usuario: app de escritorio Tkinter y frontend web desacoplado."""
+"""Paquete de interfaces de usuario del sistema (escritorio Tkinter y web)."""

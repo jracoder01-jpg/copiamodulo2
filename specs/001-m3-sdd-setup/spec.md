@@ -25,7 +25,7 @@ Asimismo, se incorpora formalmente la totalidad del backlog aprobado en el Módu
 | **HU-05** | #8 | Backend | Jhonatan Tapia | 3 | `api/main.py`, `api/schemas.py` | Endpoints `GET /health` (200), `POST /predict` (meta E2E $p95 < 450$\,ms) y `GET /docs` OpenAPI interactivo. |
 | **HU-06** | #9 | Frontend | John Restrepo | 3 | `ui/web/`, `ui/desktop_app.py`, `ui/api_client.py` | Carga interactiva JPG/JPEG/PNG en frontend web y app de escritorio, barra porcentual, gráfico Top-3, alerta si certeza $< 0.60$ y manejo robusto de errores sin colapso de la interfaz. |
 | **HU-07** | #10 | Testing | Santiago Correa | 3 | `tests/unit/`, `tests/integration/` | Suite unitaria en $< 10$\,s con mocks; suite de integración E2E con TestClient; cobertura combinada $\ge 85\%$ en `src/` y `api/`. |
-| **HU-08** | #11 | DevOps | José Silva | 2 | `Dockerfile`, `docker-compose.yml` | Construcción de paquete Wheel (`uv build`) y contenedor Docker CPU multi-etapa validado con `GET /health` HTTP 200. *(Nota: implementación local en M4; PR pendiente de autorización).* |
+| **HU-08** | #11 | DevOps | José Silva | 2 | `Dockerfile`, `docker-compose.yml` | Construcción de paquete Wheel (`uv build`) y contenedor Docker CPU multi-etapa validado con `GET /health` HTTP 200. *(Implementación adelantada a M3 por instrucción del responsable; validada localmente el 2026-11-13).* |
 
 **Total Acumulado:** 8 Historias de Usuario, 25 Criterios de Aceptación, 21 Story Points.
 
@@ -105,13 +105,13 @@ Asimismo, se incorpora formalmente la totalidad del backlog aprobado en el Módu
 ---
 
 ### HU-08: Contenerización Docker y Paquete Wheel
-- **Responsable:** José Silva (DevOps) | **Estimación:** 2 SP | **Ticket:** #11 | **Prioridad:** P3 (Alcance M4)
+- **Responsable:** José Silva (DevOps) | **Estimación:** 2 SP | **Ticket:** #11 | **Prioridad:** P2 (Adelantada a M3 por instrucción del responsable)
 - **Narrativa:** *Como* Ingeniero de Despliegue, *quiero* construir la imagen Docker multi-etapa y el paquete Wheel con `uv build`, *para* permitir el despliegue desacoplado y reproducible en servidores productivos.
 - **Escenarios de Aceptación:**
   1. **AC8.1:** **Dado** `pyproject.toml`, **cuando** se ejecuta `uv build`, **entonces** genera exitosamente los archivos `.whl` y `.tar.gz` en `dist/`.
   2. **AC8.2:** **Dada** la imagen Docker construida y activa, **cuando** se consulta `curl http://localhost:8000/health`, **entonces** responde exitosamente con HTTP 200.
-  3. **AC8.3:** **Dado** `docker-compose.yml`, **cuando** se despliega el contenedor de la API, **entonces** la aplicación de escritorio Tkinter y el frontend web pueden consumir el servicio en `http://127.0.0.1:8000` de forma coordinada.
-- *Nota de delimitación M3:* La implementación local de HU-08 se desarrolla en el Módulo 4; el PR queda pendiente de autorización.
+  3. **AC8.3:** **Dado** `docker-compose.yml`, **cuando** se despliegan los contenedores, **entonces** opera la orquestación unificada de API y frontend web sin Streamlit (D-01) en red interna compartida.
+- *Nota de alcance:* HU-08 se adelanta a M3 por instrucción del responsable; no se modifica el PDF entregado en M2.
 
 ---
 
