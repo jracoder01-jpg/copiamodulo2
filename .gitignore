@@ -11,6 +11,11 @@ htmlcov/
 .ruff_cache/
 .mypy_cache/
 
+# Artefactos de empaquetado (HU-08)
+dist/
+build/
+*.egg-info/
+
 # Caché local de Hugging Face
 .cache/
 
@@ -47,6 +52,13 @@ Thumbs.db
 *.sqlite
 *.sqlite3
 engram.db
+
+# Tracking local y artefactos de MLflow
+mlruns/
+mlartifacts/
+.mlflow/
+mlflow_data/
+mlflow_tracking.db
 
 # Skills de terceros en cuarentena preventiva de seguridad (SkillSpector CRITICAL)
 .agents/skills/archify/

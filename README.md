@@ -8,9 +8,8 @@
 ![Ruff](https://img.shields.io/badge/code%20style-ruff-D7FF64?logo=ruff&logoColor=black)
 ![pytest](https://img.shields.io/badge/pytest-158%20unit%20%7C%206%20integration-0A9EDC?logo=pytest&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Backend%20CPU-009688?logo=fastapi&logoColor=white)
+[![Quality Gate CI (M3)](https://github.com/vivacius/uao-gestion-proyectos-ia-deteccion-enfermedades/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/vivacius/uao-gestion-proyectos-ia-deteccion-enfermedades/actions/workflows/ci.yml)
 ![License](https://img.shields.io/badge/Code%20MIT%20%7C%20Weights%20CC%20BY--SA%204.0-lightgrey)
-
-> **Estado de CI (T-04):** El workflow de GitHub Actions (`.github/workflows/ci.yml`) ya se encuentra integrado en `develop` (PR #19); aún no se publica badge de CI en verde porque `ruff format --check .` permanece pendiente de formateo coordinado sobre 5 archivos en `develop`.
 
 ---
 
@@ -56,12 +55,17 @@ El proyecto implementa una arquitectura modular y desacoplada en capas para gara
 ├── api/                             # Capa de servicio REST (Model-as-a-Service con FastAPI)
 │   ├── schemas.py                   # Modelos de datos y validación con Pydantic v2
 │   └── main.py                      # Endpoints GET /health, GET /model-info y POST /predict
-├── ui/                              # Capa de presentación (Escritorio Tkinter operativo M3 y transición web)
+├── ui/                              # Capa de presentación (escritorio Tkinter y frontend web)
 │   ├── api_client.py                # Cliente HTTP desacoplado que consume la API REST (sin duplicar el modelo)
-│   └── desktop_app.py               # Interfaz gráfica nativa de escritorio en español (Tkinter — operativa M3)
+│   ├── desktop_app.py               # Interfaz gráfica nativa de escritorio en español (Tkinter — operativa M3)
+│   └── web/                         # Frontend HTML/CSS/JS y servidor de previsualización con mocks
+├── deploy/
+│   └── nginx.conf                   # Proxy same-origin del frontend web para Docker Compose
 ├── docs/                            # Documentación técnica, diagramas Archify y guías de reproducción
 │   ├── architecture/                # Diagramas C4/componentes (.html, .svg, .json)
-│   └── getting-started.md           # Guía de arranque reproducible en Windows con uv y Spec Kit
+│   ├── getting-started.md           # Guía de arranque reproducible en Windows con uv y Spec Kit
+│   ├── model-card.md                # Ficha técnica oficial del modelo (Mitchell et al., 2019)
+│   └── qa-e2e-benchmarks.md         # Reporte empírico de validación E2E y benchmarks en CPU
 ├── specs/                           # Especificaciones SDD (Spec Kit) por unidad de trabajo
 ├── tests/                           # Suite de pruebas automatizadas con pytest
 │   ├── conftest.py                  # Generadores de imágenes sintéticas (JPG, PNG, RGBA, grises, corruptas, GIF)
@@ -90,6 +94,7 @@ El proyecto implementa una arquitectura modular y desacoplada en capas para gara
 - **Autora del modelo preentrenado:** Rodayna Emad Mohamed (*Pharos University in Alexandria*).
 - **Arquitectura:** `Dinov2ForImageClassification` basada en el backbone [`facebook/dinov2-small`](https://huggingface.co/facebook/dinov2-small) (congelado, extracción de características de 768 dimensiones combinando el token `CLS` y el promedio de parches) junto con un cabezal de clasificación lineal entrenado sobre las 54,305 imágenes en color del conjunto de datos **PlantVillage**.
 - **Nota sobre las métricas reportadas por la autora:** En la documentación oficial del modelo (*Model Card*), la autora reporta una exactitud (*accuracy*) de **98.86%** y un **Macro F1 de 98.49%** sobre una partición de prueba de hojas no vistas durante el entrenamiento (*leaf-level held-out split* de 10,862 imágenes de PlantVillage). **Estas cifras corresponden exclusivamente al entrenamiento y evaluación publicados por la autora original del modelo y no se presentan como métricas de entrenamiento propio de este proyecto**, dado que en este trabajo utilizamos el modelo preentrenado tal como fue distribuido, sin modificar sus pesos (`model.safetensors`).
+- **Model Card oficial del proyecto:** Consulta la ficha técnica completa, análisis de sesgos, consideraciones éticas y métricas computacionales reales en CPU en [`docs/model-card.md`](docs/model-card.md) (elaborada bajo el estándar de Mitchell et al., 2019).
 
 ### Preprocesamiento oficial aplicado (`preprocessor_config.json`)
 El módulo `src/preprocessing.py` utiliza `AutoImageProcessor.from_pretrained(..., local_files_only=True)` (`BitImageProcessor`) respetando fielmente los parámetros originales del modelo:
@@ -300,9 +305,55 @@ Recibe un archivo de imagen (`file`, formatos `JPG`, `JPEG` o `PNG`, hasta `10 M
 
 ---
 
-## 🐳 8. Contenerización Docker y Empaquetado Wheel (Diferido a Módulo 4 — HU-08)
+## 🐳 8. Empaquetado Wheel y Contenerización Docker (HU-08)
 
-> **Nota de alcance (M3 vs. M4):** De acuerdo con la planificación académica y `AGENTS.md`, la historia **HU-08 (#11)** (*Wheel `uv build`, imagen Docker multi-etapa y `docker-compose.yml`*) queda **expresamente diferida para el Módulo 4**. Los archivos `Dockerfile` y `docker-compose.yml` presentes en el repositorio serán actualizados y validados en M4 una vez consolidado el nuevo frontend sin Streamlit.
+Implementado conforme a los criterios **AC8.1–AC8.3** y a la decisión **D-01** (sin Streamlit).
+
+### 8.1 Paquete Wheel y sdist
+
+```bash
+uv build
+```
+
+Genera en `dist/`:
+
+- `plant_disease_classifier-1.0.0-py3-none-any.whl`
+- `plant_disease_classifier-1.0.0.tar.gz`
+
+El wheel incluye los paquetes `src/`, `api/`, `ui/` y los activos estáticos de `ui/web/static/`.
+
+### 8.2 Imagen Docker CPU multi-etapa
+
+```bash
+docker build -t plant-disease-classifier:1.0.0 .
+docker run --rm -p 8000:8000 plant-disease-classifier:1.0.0
+curl http://localhost:8000/health
+```
+
+La imagen final no incluye `uv` ni dependencias de desarrollo, ejecuta como usuario no root e incorpora el modelo local y el frontend web servido por FastAPI en `/`. La documentación OpenAPI queda disponible en `http://localhost:8000/docs`.
+
+### 8.3 Orquestación con Docker Compose
+
+```bash
+docker compose up --build -d
+curl http://localhost:8000/health
+# Interfaz web: http://localhost:8080
+# Swagger UI:   http://localhost:8080/docs
+docker compose down
+```
+
+Compose levanta dos servicios en la red interna compartida:
+
+- `api`: FastAPI + DINOv2 en CPU, publicado en `8000`.
+- `web`: Nginx con el frontend estático y proxy same-origin hacia `api:8000`, publicado en `8080`.
+
+El servicio `api` cuenta con *healthcheck* y el servicio `web` espera a que esté saludable antes de arrancar.
+
+### 8.4 Requisitos
+
+- Archivos locales `model.safetensors`, `config.json` y `preprocessor_config.json` presentes en la raíz.
+- Docker Desktop o Docker Engine con el daemon activo.
+- No se requiere Streamlit ni ninguna interfaz adicional.
 
 ---
 
@@ -350,7 +401,7 @@ uv run ruff format --check .
 | Integrante | Rol Principal | Historias Asignadas |
 | :--- | :--- | :--- |
 | **Santiago Correa Campaña** (`@vivacius`) | DevOps, Calidad y Pruebas | HU-01 (#4), HU-07 (#10) |
-| **José Isaac Silva Calderón** (`@josesilvacalderon111`) | Ingestión, Preprocesamiento y Empaquetado | HU-02 (#5), HU-08 (#11 — M4) |
+| **José Isaac Silva Calderón** (`@josesilvacalderon111`) | Ingestión, Preprocesamiento y Empaquetado | HU-02 (#5), HU-08 (#11) |
 | **Jhonatan Andrés Tapia Córdoba** (`@JhonatanTC99`) | ML/Backend, API FastAPI y Code Reviewer | HU-03 (#6), HU-05 (#8) |
 | **John Restrepo Aparicio** (`@JohnRestrepo-coder`) | Postprocesamiento, Taxonomía y Frontend | HU-04 (#7), HU-06 (#9) |
 
